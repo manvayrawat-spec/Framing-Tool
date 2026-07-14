@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Framing Cost Calculator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#e8ede8;color:#111;min-height:100vh;padding:2rem 1rem 4rem}
+.page-wrap{max-width:700px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem}
+.shop-name{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#5a7a5a;margin-bottom:3px}
+header h1{font-size:22px;font-weight:500;color:#111}
+.lang-toggle{display:flex;align-items:center;background:#fff;border:1px solid #c8d8c8;border-radius:10px;padding:3px;gap:2px;flex-shrink:0;margin-top:2px}
+.lang-btn{padding:5px 13px;border-radius:7px;border:none;background:transparent;font-size:12px;font-weight:500;color:#7a9a7a;cursor:pointer;font-family:inherit;transition:all .15s}
+.lang-btn.active{background:#1e3a1e;color:#fff}
+
+.setup-card{background:#1e3a1e;border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.setup-label{font-size:13px;color:#8ab88a;flex-shrink:0;font-weight:500}
+.qty-control{display:flex;align-items:center;background:#142a14;border-radius:10px;overflow:hidden}
+.qty-btn{width:40px;height:40px;border:none;background:transparent;color:#7ab87a;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .12s;line-height:1}
+.qty-btn:hover{background:#1e3a1e;color:#a8d8a8}
+.qty-display{min-width:48px;text-align:center;font-size:20px;font-weight:500;color:#fff}
+
+/* size blocks */
+.size-block{background:#fff;border-radius:14px;margin-bottom:1.25rem;overflow:hidden;border:1.5px solid #c8d8c8}
+.size-header{display:flex;align-items:center;gap:12px;padding:.85rem 1.25rem;border-bottom:1px solid #e0eae0}
+.size-number{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;color:#fff}
+.size-title{font-size:14px;font-weight:500;color:#111;flex:1}
+.size-subtitle{font-size:11px;color:#7a9a7a}
+.size-body{padding:1rem 1.25rem;display:flex;flex-direction:column;gap:12px}
+
+/* size total footer — lives inside size-block */
+.size-total-bar{display:flex;justify-content:space-between;align-items:center;padding:.7rem 1.25rem;background:#f0f7e8;border-top:1px solid #d4eab0}
+.size-total-label{font-size:12px;font-weight:500;color:#3b6d11}
+.size-total-val{font-size:16px;font-weight:600;color:#1e3a1e;font-variant-numeric:tabular-nums}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.field-row.two{grid-template-columns:1fr 1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;color:#5a7a5a;font-weight:500;letter-spacing:.03em}
+.field input{height:40px;border-radius:8px;border:1px solid #d0ddd0;background:#f4f8f4;color:#111;font-size:16px;padding:0 11px;width:100%;outline:none;font-family:inherit;transition:border-color .12s}
+.field input:focus{border-color:#3b6d11;background:#fff;box-shadow:0 0 0 3px rgba(59,109,17,.09)}
+
+.subsection-label{font-size:11px;font-weight:600;color:#5a7a5a;letter-spacing:.05em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid #e8f0e8}
+
+/* section divider */
+.section-divider{display:flex;align-items:center;gap:12px;margin:1.75rem 0 1.25rem}
+.section-divider-line{flex:1;height:1px;background:#b8ccb8}
+.section-divider-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#7a9a7a;flex-shrink:0;background:#e8ede8;padding:0 4px}
+
+/* extra frame section */
+.extra-card{background:#fff;border:1.5px solid #b8ccb8;border-radius:14px;margin-bottom:1.25rem;overflow:hidden}
+.extra-header{background:#2e5a1e;padding:.75rem 1.25rem;display:flex;align-items:center;gap:8px}
+.extra-header-title{font-size:13px;font-weight:500;color:#c8e8a0;flex:1}
+.extra-body{padding:1rem 1.25rem;display:flex;flex-direction:column;gap:12px}
+.extra-results{padding:.6rem 1.25rem;background:#f4f8f0;border-top:1px solid #d8eac0;display:flex;flex-direction:column;gap:0}
+.extra-result-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid #eaf3e0}
+.extra-result-row:last-child{border-bottom:none}
+.extra-result-label{color:#5a7a5a}
+.extra-result-val{font-weight:500;color:#1e3a1e;font-variant-numeric:tabular-nums}
+.extra-total-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 1.25rem;background:#eaf3de;border-top:1px solid #c6e0a0}
+.extra-total-label{font-size:13px;font-weight:500;color:#2e5a1e}
+.extra-total-val{font-size:16px;font-weight:600;color:#1e3a1e;font-variant-numeric:tabular-nums}
+
+/* grand total */
+.total-card{background:#1e3a1e;border-radius:14px;padding:1.1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.total-left{display:flex;flex-direction:column;gap:3px}
+.total-label{font-size:13px;color:#7ab87a}
+.total-actual{font-size:11px;color:#5a8a5a;font-variant-numeric:tabular-nums}
+.total-amount{font-size:28px;font-weight:500;color:#fff;font-variant-numeric:tabular-nums;text-align:right}
+
+/* colour system */
+.c0 .size-number{background:#1e3a1e}
+.c0 .size-header{background:#f2f8f0}
+.c0 .size-block{border-color:#b0ccb0}
+.c1 .size-number{background:#2e5a1e}
+.c1 .size-header{background:#f0f8ea}
+.c1 .size-block{border-color:#a8c898}
+.c2 .size-number{background:#3b6d11}
+.c2 .size-header{background:#eef7e4}
+.c2 .size-block{border-color:#a0c488}
+.c3 .size-number{background:#4a7a20}
+.c3 .size-header{background:#ecf6e0}
+.c3 .size-block{border-color:#98c080}
+.c4 .size-number{background:#555}
+.c4 .size-header{background:#f5f5f5}
+.c4 .size-block{border-color:#c0c0c0}
+.c5 .size-number{background:#333}
+.c5 .size-header{background:#f2f2f2}
+.c5 .size-block{border-color:#b8b8b8}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #c8d8c8;background:#fff;color:#3b6d11;font-family:inherit;transition:background .12s}
+.btn:hover{background:#f0f7e8}
+.btn:active{transform:scale(.98)}
+.btn-print{background:#1e3a1e;color:#fff;border-color:#1e3a1e}
+.btn-print:hover{background:#2e5a1e}
+
+@media(max-width:520px){
+  .field-row{grid-template-columns:1fr 1fr}
+  header{flex-direction:column;gap:10px}
+  .setup-card{flex-direction:column;gap:1rem}
+  .total-amount{font-size:22px}
+}
+@media print{
+  body{background:white;padding:1rem}
+  .actions,.lang-toggle,.qty-btn{display:none}
+  .size-block,.extra-card{break-inside:avoid}
+  .total-card,.extra-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header>
+    <div>
+      <div class="shop-name" data-en="Framing Business" data-hi="फ्रेमिंग व्यवसाय">Framing Business</div>
+      <h1 data-en="Cost Calculator" data-hi="लागत कैलकुलेटर">Cost Calculator</h1>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btn-en" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+  </header>
+
+  <div class="setup-card">
+    <div>
+      <div class="setup-label" data-en="Number of sizes" data-hi="साइज़ की संख्या">Number of sizes</div>
+      <div style="margin-top:8px">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeCount(-1)">&#8722;</button>
+          <div class="qty-display" id="count-display">1</div>
+          <button class="qty-btn" onclick="changeCount(1)">&#43;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sizes-container"></div>
+
+  <!-- extra frame -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label" data-en="Extra frame" data-hi="अतिरिक्त फ्रेम">Extra frame</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="extra-card">
+    <div class="extra-header">
+      <span class="extra-header-title" data-en="Extra frame calculation" data-hi="अतिरिक्त फ्रेम की गणना">Extra frame calculation</span>
+    </div>
+    <div class="extra-body">
+      <div>
+        <div class="subsection-label" data-en="Moulding" data-hi="मोल्डिंग">Moulding</div>
+        <div style="margin-top:8px" class="field-row two">
+          <div class="field">
+            <label data-en="Length (running ft)" data-hi="लंबाई (रनिंग फुट)">Length (running ft)</label>
+            <input type="number" id="ex-mlen" placeholder="e.g. 4.5" min="0" step="0.1" oninput="calcExtra()">
+          </div>
+          <div class="field">
+            <label data-en="Rate per running ft (&#8377;)" data-hi="दाम प्रति रनिंग फुट (&#8377;)">Rate per running ft (&#8377;)</label>
+            <input type="number" id="ex-mrate" placeholder="e.g. 40" min="0" step="1" oninput="calcExtra()">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="subsection-label" data-en="Glass / Hardboard / Mount" data-hi="काँच / हार्डबोर्ड / माउंट">Glass / Hardboard / Mount</div>
+        <div style="margin-top:8px" class="field-row">
+          <div class="field">
+            <label data-en="Length (inches)" data-hi="लंबाई (इंच)">Length (inches)</label>
+            <input type="number" id="ex-len" placeholder="e.g. 10" min="0" step="0.5" oninput="calcExtra()">
+          </div>
+          <div class="field">
+            <label data-en="Breadth (inches)" data-hi="चौड़ाई (इंच)">Breadth (inches)</label>
+            <input type="number" id="ex-brd" placeholder="e.g. 8" min="0" step="0.5" oninput="calcExtra()">
+          </div>
+          <div class="field">
+            <label data-en="Combined rate (&#8377;/sq ft)" data-hi="कुल दाम (&#8377;/वर्ग फुट)">Combined rate (&#8377;/sq ft)</label>
+            <input type="number" id="ex-arate" placeholder="e.g. 80" min="0" step="1" oninput="calcExtra()">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="extra-results">
+      <div class="extra-result-row">
+        <span class="extra-result-label" data-en="Moulding cost" data-hi="मोल्डिंग लागत">Moulding cost</span>
+        <span class="extra-result-val" id="ex-val-mould">—</span>
+      </div>
+      <div class="extra-result-row">
+        <span class="extra-result-label" data-en="Glass / Hardboard / Mount cost" data-hi="काँच / हार्डबोर्ड / माउंट लागत">Glass / Hardboard / Mount cost</span>
+        <span class="extra-result-val" id="ex-val-area">—</span>
+      </div>
+    </div>
+    <div class="extra-total-row">
+      <span class="extra-total-label" data-en="Extra frame total" data-hi="अतिरिक्त फ्रेम कुल">Extra frame total</span>
+      <span class="extra-total-val" id="ex-val-total">&#8377;0</span>
+    </div>
+  </div>
+
+  <!-- grand total -->
+  <div class="total-card">
+    <div class="total-left">
+      <span class="total-label" data-en="Grand total" data-hi="कुल योग">Grand total</span>
+      <span class="total-actual" id="val-actual-total"></span>
+    </div>
+    <span class="total-amount" id="val-grand-total">&#8377;0</span>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-print" onclick="window.print()" data-en="&#128438; Print / Save as PDF" data-hi="&#128438; प्रिंट / PDF सेव करें">&#128438; Print / Save as PDF</button>
+    <button class="btn" onclick="resetAll()" data-en="&#8635; Reset all" data-hi="&#8635; सब मिटाएं">&#8635; Reset all</button>
+  </div>
+
+</div>
+<script>
+var lang='en', count=1, MAX=6;
+var COLORS=['c0','c1','c2','c3','c4','c5'];
+
+var T={
+  en:{
+    sl:function(i){return 'Size '+(i+1)},
+    len:'Length (inches)',
+    brd:'Breadth (inches)',
+    qty:'No. of frames',
+    arate:'Glass + Hardboard + Mount (&#8377;/sq ft)',
+    mrate:'Moulding rate (&#8377;/running ft)',
+    dimInfo:function(sq,pf){return 'Area: '+sq.toFixed(3)+' sq ft  \u2022  Perimeter: '+pf.toFixed(2)+' running ft'},
+    totalLabel:'Size total',
+    actualLabel:function(raw,rounded){return 'Actual: \u20B9'+Math.round(raw).toLocaleString('en-IN')+'\u2003\u2192\u2003Rounded: \u20B9'+rounded.toLocaleString('en-IN')}
+  },
+  hi:{
+    sl:function(i){return '\u0938\u093E\u0907\u091C\u093C '+(i+1)},
+    len:'\u0932\u0902\u092C\u093E\u0908 (\u0907\u0902\u091A)',
+    brd:'\u091A\u094C\u095C\u093E\u0908 (\u0907\u0902\u091A)',
+    qty:'\u092B\u094D\u0930\u0947\u092E \u0938\u0902\u0916\u094D\u092F\u093E',
+    arate:'\u0915\u093E\u0901\u091A + \u0939\u093E\u0930\u094D\u0921\u092C\u094B\u0930\u094D\u0921 + \u092E\u093E\u0909\u0902\u091F (&#8377;/\u0935\u0930\u094D\u0917 \u092B\u0941\u091F)',
+    mrate:'\u092E\u094B\u0932\u094D\u0921\u093F\u0902\u0917 \u0926\u093E\u092E (&#8377;/\u0930\u0928\u093F\u0902\u0917 \u092B\u0941\u091F)',
+    dimInfo:function(sq,pf){return '\u0915\u094D\u0937\u0947\u0924\u094D\u0930\u092B\u0932: '+sq.toFixed(3)+' \u0935\u0930\u094D\u0917 \u092B\u0941\u091F  \u2022  \u092A\u0930\u093F\u092E\u093E\u092A: '+pf.toFixed(2)+' \u0930\u0928\u093F\u0902\u0917 \u092B\u0941\u091F'},
+    totalLabel:'\u0938\u093E\u0907\u091C\u093C \u0915\u0941\u0932',
+    actualLabel:function(raw,rounded){return '\u0935\u093E\u0938\u094D\u0924\u0935\u093F\u0915: \u20B9'+Math.round(raw).toLocaleString('en-IN')+'\u2003\u2192\u2003\u0917\u094B\u0932: \u20B9'+rounded.toLocaleString('en-IN')}
+  }
+};
+
+function roundToQ(n){
+  var whole=Math.floor(n);
+  var last=whole%100;
+  var base=whole-last;
+  var r;
+  if(last===0) r=0;
+  else if(last<=25) r=25;
+  else if(last<=50) r=50;
+  else if(last<=75) r=75;
+  else r=100;
+  return base+r;
+}
+
+function v(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0}
+function fmt(n){return '\u20B9'+n.toLocaleString('en-IN')}
+
+function changeCount(d){
+  count=Math.min(MAX,Math.max(1,count+d));
+  document.getElementById('count-display').textContent=count;
+  renderAll();calcAll();
+}
+
+function getSaved(){
+  var s=[];
+  for(var i=0;i<MAX;i++) s.push({L:v('L'+i),B:v('B'+i),q:v('Q'+i)||1,ar:v('AR'+i),mr:v('MR'+i)});
+  return s;
+}
+
+function renderAll(){renderSizes()}
+
+function renderSizes(){
+  var s=getSaved(),c=document.getElementById('sizes-container');
+  c.innerHTML='';
+  for(var i=0;i<count;i++){
+    var col=COLORS[i],si=s[i],d=document.createElement('div');
+    d.className='size-block '+col;
+    d.innerHTML=
+      '<div class="size-header">'+
+        '<div class="size-number">'+(i+1)+'</div>'+
+        '<div class="size-title">'+T[lang].sl(i)+'</div>'+
+        '<div class="size-subtitle" id="sdim'+i+'"></div>'+
+      '</div>'+
+      '<div class="size-body">'+
+        '<div>'+
+          '<div class="subsection-label" data-en="Dimensions &amp; quantity" data-hi="\u092E\u093E\u092A \u0914\u0930 \u0938\u0902\u0916\u094D\u092F\u093E">Dimensions &amp; quantity</div>'+
+          '<div style="margin-top:8px" class="field-row">'+
+            '<div class="field"><label>'+T[lang].len+'</label><input type="number" id="L'+i+'" value="'+(si.L||'')+'" placeholder="e.g. 18" min="0" step="0.5" oninput="calcAll()"></div>'+
+            '<div class="field"><label>'+T[lang].brd+'</label><input type="number" id="B'+i+'" value="'+(si.B||'')+'" placeholder="e.g. 12" min="0" step="0.5" oninput="calcAll()"></div>'+
+            '<div class="field"><label>'+T[lang].qty+'</label><input type="number" id="Q'+i+'" value="'+(si.q||1)+'" min="1" step="1" oninput="calcAll()"></div>'+
+          '</div>'+
+        '</div>'+
+        '<div>'+
+          '<div class="subsection-label" data-en="Material rates" data-hi="\u0938\u093E\u092E\u0917\u094D\u0930\u0940 \u0926\u093E\u092E">Material rates</div>'+
+          '<div style="margin-top:8px" class="field-row two">'+
+            '<div class="field"><label>'+T[lang].arate+'</label><input type="number" id="AR'+i+'" value="'+(si.ar||'')+'" placeholder="e.g. 80" min="0" step="1" oninput="calcAll()"></div>'+
+            '<div class="field"><label>'+T[lang].mrate+'</label><input type="number" id="MR'+i+'" value="'+(si.mr||'')+'" placeholder="e.g. 40" min="0" step="1" oninput="calcAll()"></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="size-total-bar">'+
+        '<span class="size-total-label" id="stlabel'+i+'">'+T[lang].totalLabel+'</span>'+
+        '<span class="size-total-val" id="stval'+i+'">—</span>'+
+      '</div>';
+    c.appendChild(d);
+  }
+  document.querySelectorAll('[data-en]').forEach(function(el){
+    var txt=el.getAttribute('data-'+lang);if(txt)el.innerHTML=txt;
+  });
+}
+
+var extraMouldCost=0, extraAreaCost=0;
+var sizeSubtotals=[];
+
+function calcExtra(){
+  var mlen=v('ex-mlen'),mrate=v('ex-mrate');
+  var L=v('ex-len'),B=v('ex-brd'),ar=v('ex-arate');
+  extraMouldCost=mlen*mrate;
+  extraAreaCost=((L*B)/144)*ar;
+  var t=extraMouldCost+extraAreaCost;
+  var mEl=document.getElementById('ex-val-mould');
+  var aEl=document.getElementById('ex-val-area');
+  var tEl=document.getElementById('ex-val-total');
+  if(mEl) mEl.textContent=extraMouldCost>0?fmt(Math.round(extraMouldCost)):'—';
+  if(aEl) aEl.textContent=extraAreaCost>0?fmt(Math.round(extraAreaCost)):'—';
+  if(tEl) tEl.textContent=t>0?fmt(Math.round(t)):'\u20B90';
+  calcGrand();
+}
+
+function calcAll(){
+  sizeSubtotals=[];
+  for(var i=0;i<count;i++){
+    var L=v('L'+i),B=v('B'+i),q=Math.max(1,Math.round(v('Q'+i)||1));
+    var ar=v('AR'+i),mr=v('MR'+i);
+    var sq=(L*B)/144,pf=(2*(L+B))/12;
+
+    var sd=document.getElementById('sdim'+i);
+    if(sd) sd.textContent=(L>0&&B>0)?T[lang].dimInfo(sq,pf):'';
+
+    var areaCost=sq*ar*q;
+    var mouldCost=pf*mr*q;
+    var raw=areaCost+mouldCost;
+    sizeSubtotals.push(raw);
+
+    var sv=document.getElementById('stval'+i);
+    var sl=document.getElementById('stlabel'+i);
+    if(sv) sv.textContent=raw>0?fmt(Math.round(raw)):'—';
+    if(sl) sl.textContent=T[lang].totalLabel+(L>0&&B>0&&q>0?' ('+q+(lang==='hi'?' \u092B\u094D\u0930\u0947\u092E':' frame'+(q>1?'s':''))+')':'');
+  }
+  calcGrand();
+}
+
+function calcGrand(){
+  var sizesTotal=0;
+  for(var i=0;i<sizeSubtotals.length;i++) sizesTotal+=sizeSubtotals[i];
+  var extraTotal=extraMouldCost+extraAreaCost;
+  var grand=sizesTotal+extraTotal;
+  var rounded=roundToQ(grand);
+
+  var el=document.getElementById('val-grand-total');
+  var el2=document.getElementById('val-actual-total');
+
+  if(el) el.textContent=grand>0?fmt(rounded):'\u20B90';
+  if(el2){
+    if(grand>0 && rounded!==Math.round(grand)){
+      el2.textContent=T[lang].actualLabel(grand,rounded);
+    } else {
+      el2.textContent='';
+    }
+  }
+}
+
+function resetAll(){
+  for(var i=0;i<MAX;i++){
+    ['L','B','AR','MR'].forEach(function(p){var e=document.getElementById(p+i);if(e)e.value=''});
+    var eq=document.getElementById('Q'+i);if(eq)eq.value=1;
+  }
+  ['ex-mlen','ex-mrate','ex-len','ex-brd','ex-arate'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.value='';
+  });
+  extraMouldCost=0;extraAreaCost=0;sizeSubtotals=[];
+  count=1;document.getElementById('count-display').textContent=1;
+  renderAll();calcAll();calcExtra();
+}
+
+function setLang(l){
+  lang=l;
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  document.getElementById('btn-hi').classList.toggle('active',l==='hi');
+  document.querySelectorAll('[data-en]').forEach(function(el){
+    var txt=el.getAttribute('data-'+l);if(txt)el.innerHTML=txt;
+  });
+  renderAll();calcAll();calcExtra();
+}
+
+renderAll();calcAll();calcExtra();
+</script>
+</body>
+</html>
